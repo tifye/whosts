@@ -9,10 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	defaultHostsPath = "C:\\windows\\system32\\drivers\\etc\\hosts"
-)
-
 func newRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "whosts",
@@ -37,5 +33,8 @@ func Execute() {
 }
 
 func addCommands(root *cobra.Command) {
-	root.AddCommand(newListCommand())
+	root.AddCommand(
+		newListCommand(),
+		newDumpCommand(),
+	)
 }

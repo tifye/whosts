@@ -1,5 +1,5 @@
 package pkg
 
-var (
+const (
 	DefaultHostsPath = "C:\\windows\\system32\\drivers\\etc\\hosts"
 )
