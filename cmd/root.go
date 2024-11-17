@@ -21,6 +21,7 @@ func newRootCommand() *cobra.Command {
 
 func Execute() {
 	root := newRootCommand()
+	addCommands(root)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -29,4 +30,8 @@ func Execute() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func addCommands(root *cobra.Command) {
+	root.AddCommand(newListCommand())
 }
