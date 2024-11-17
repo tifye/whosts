@@ -7,6 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/spf13/cobra"
+	"github.com/tifye/whosts/pkg"
 )
 
 func newRootCommand() *cobra.Command {
@@ -16,6 +17,10 @@ func newRootCommand() *cobra.Command {
 			cmd.Help()
 		},
 	}
+
+	cmd.PersistentFlags().String("hosts", pkg.DefaultHostsPath, "Path to hosts file to target")
+	cmd.MarkPersistentFlagFilename("hosts")
+
 	return cmd
 }
 

@@ -6,14 +6,18 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/tifye/whosts/pkg"
 )
 
 func newDumpCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "dump",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			file, err := os.Open(pkg.DefaultHostsPath)
+			hostsFile, err := cmd.Flags().GetString("hosts")
+			if err != nil {
+				return err
+			}
+
+			file, err := os.Open(hostsFile)
 			if err != nil {
 				return fmt.Errorf("open file: %s", err)
 			}
