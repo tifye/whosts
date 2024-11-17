@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/tifye/whosts/cmd"
+)
 
 func main() {
-	fmt.Println("meep")
+	cmd.Execute()
 }
