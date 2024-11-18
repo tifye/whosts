@@ -18,9 +18,14 @@ func newOpenCommand() *cobra.Command {
 			}
 
 			execCmd := exec.Command("notepad", hostsFile)
-			err = execCmd.Run()
+			err = execCmd.Start()
 			if err, ok := err.(*exec.ExitError); ok {
 				return fmt.Errorf("failed to open: %s", err)
+			}
+
+			err = execCmd.Process.Release()
+			if err != nil {
+				return fmt.Errorf("err proc release: %s", err)
 			}
 
 			return nil
