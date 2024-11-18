@@ -48,6 +48,13 @@ func Test_ParseEntry(t *testing.T) {
 				Host: "mino",
 			},
 		},
+		{
+			"188.245.227.222 meep-mino",
+			Entry{
+				IP:   net.IPv4(188, 245, 227, 222),
+				Host: "meep-mino",
+			},
+		},
 	}
 
 	for _, tt := range tests {

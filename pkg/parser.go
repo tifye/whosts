@@ -22,11 +22,14 @@ type Entry struct {
 func ParseEntries(r io.Reader) ([]Entry, error) {
 	entries := make([]Entry, 0)
 	buf := bufio.NewReader(r)
-	for ln := 0; ; ln += 1 {
+	ln := -1
+	run := true
+	for run {
+		ln += 1
 		b, err := buf.ReadBytes('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				break
+				run = false
 			} else {
 				return nil, lineParseErr(ln, fmt.Errorf("read bytes: %s", err))
 			}
