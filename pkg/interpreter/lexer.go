@@ -136,13 +136,35 @@ func (l *lexer) errorf(format string, args ...any) stateFn {
 	return l.emitItem(i)
 }
 
-func (l *lexer) scanOctet() bool {
+func (l *lexer) scanIPOctet() bool {
 	if l.accept("0") {
-		return !unicode.IsDigit(l.peak())
+		return true
 	}
 
-	l.acceptRun(digits)
-	return true
+	if l.accept("1") {
+		l.accept(digits)
+		l.accept(digits)
+		return true
+	}
+
+	if l.accept("2") {
+		if l.accept("5") {
+			l.accept("12345")
+			return true
+		}
+		if l.accept("1234") {
+			l.accept(digits)
+			l.accept(digits)
+			return true
+		}
+	}
+
+	if l.accept(digits) {
+		l.accept(digits)
+		return true
+	}
+
+	return false
 }
 
 type stateFn func(*lexer) stateFn
@@ -165,14 +187,14 @@ func lexLine(l *lexer) stateFn {
 
 func lexIP(l *lexer) stateFn {
 	for range 3 {
-		if !l.scanOctet() {
+		if !l.scanIPOctet() {
 			return l.errorf("invalid IP address, expected octet at %d", l.pos)
 		}
 		if !l.accept(".") {
 			return l.errorf("invalid IP address, exptected '.' at %d", l.pos)
 		}
 	}
-	if !l.scanOctet() {
+	if !l.scanIPOctet() {
 		return l.errorf("invalid IP address, expected octet at %d", l.pos)
 	}
 
