@@ -92,11 +92,10 @@ func Test_LexerItemTypes(t *testing.T) {
 			},
 		},
 		{
-			name:  "entry, with invalid host+comment",
+			name:  "entry, with invalid host + comment",
 			input: `0.0.0.0 host# comment#`,
 			expected: []itemType{
 				itemIP,
-				itemHost,
 				itemError,
 			},
 		},
@@ -122,6 +121,26 @@ func Test_LexerItemTypes(t *testing.T) {
 				itemEOF,
 			},
 		},
+		{
+			name:     "single digit host",
+			input:    "0.0.0.0 1",
+			expected: []itemType{itemIP, itemError},
+		},
+		{
+			name:     "single asterisk host",
+			input:    "0.0.0.0 *",
+			expected: []itemType{itemIP, itemError},
+		},
+		{
+			name:     "asterisk followed by non '.'",
+			input:    "0.0.0.0 *d",
+			expected: []itemType{itemIP, itemError},
+		},
+		{
+			name:     "asterisk following character",
+			input:    "0.0.0.0 d.*",
+			expected: []itemType{itemIP, itemError},
+		},
 	}
 
 	for _, td := range tt {
@@ -145,24 +164,72 @@ func Test_LexerItemTypes(t *testing.T) {
 	}
 }
 
-func Test_LexComments(t *testing.T) {
-	input := `
-	# End of section # foo
-
-	# End of section # foo`
-	expected := []itemType{
-		itemComment,
-		itemNewline,
-		itemComment,
-		itemEOF,
+func Test_Lexer(t *testing.T) {
+	tt := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "entry",
+			input:    "0.0.0.0 host",
+			expected: []string{"0.0.0.0", "host", ""},
+		},
+		{
+			name:  "entry with comment",
+			input: "0.0.0.0 host #comment",
+			expected: []string{
+				"0.0.0.0",
+				"host",
+				"#comment",
+				"",
+			},
+		},
+		{
+			name:  "entry with comment and newline",
+			input: "0.0.0.0 host #comment\n",
+			expected: []string{"0.0.0.0",
+				"host",
+				"#comment",
+				"\n",
+				"",
+			},
+		},
+		{
+			name:  "entry with comment and newline",
+			input: "0.0.0.0 host\n0.0.0.0 host",
+			expected: []string{"0.0.0.0",
+				"host",
+				"\n",
+				"0.0.0.0",
+				"host",
+				"",
+			},
+		},
+		{
+			name:     "single letter host",
+			input:    "0.0.0.0 a",
+			expected: []string{"0.0.0.0", "a", ""},
+		},
 	}
 
-	_, items := lex(input)
+	for _, td := range tt {
+		t.Run(td.name, func(t *testing.T) {
+			_, itemch := lex(td.input)
 
-	got := make([]itemType, 0, len(expected))
-	for i := range items {
-		got = append(got, i.typ)
+			items := make([]item, 0, len(td.expected))
+			for i := range itemch {
+				items = append(items, i)
+			}
+
+			got := make([]string, 0, len(td.expected))
+			for _, i := range items {
+				got = append(got, i.val)
+			}
+
+			if !assert.Equal(t, td.expected, got) {
+				t.Logf("last item: %q", items[len(items)-1])
+			}
+		})
 	}
-
-	_ = assert.Equal(t, expected, got)
 }

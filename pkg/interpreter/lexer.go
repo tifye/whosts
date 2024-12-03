@@ -24,6 +24,7 @@ const (
 	spaceChars               = " \t\r\n"
 	spaceCharsNoNewLine      = " \t"
 	newLine                  = '\n'
+	digits                   = "0123456789"
 )
 
 type item struct {
@@ -136,8 +137,6 @@ func (l *lexer) errorf(format string, args ...any) stateFn {
 }
 
 func (l *lexer) scanOctet() bool {
-	digits := "0123456789"
-
 	if l.accept("0") {
 		return !unicode.IsDigit(l.peak())
 	}
@@ -189,6 +188,19 @@ func lexIP(l *lexer) stateFn {
 }
 
 func lexHost(l *lexer) stateFn {
+	if l.accept(digits) {
+		if !isHostAllowed(l.peak()) {
+			return l.errorf("bad host syntax: %q", l.input[l.start:l.pos])
+		}
+		l.backup()
+	}
+
+	if l.accept("*") {
+		if !l.accept(".") {
+			return l.errorf("bad host syntax: %q, expected '.' following asterisk", l.input[l.start:l.pos])
+		}
+	}
+
 	for {
 		r := l.next()
 		if !isHostAllowed(r) {
@@ -203,12 +215,11 @@ func lexHost(l *lexer) stateFn {
 		return l.errorf("missing Host definition at %d", l.pos)
 	}
 
-	l.emit(itemHost)
-
 	if r := l.peak(); !isSpace(r) && r != eof {
-		return l.errorf("unexpected character at %d, got: %q", l.pos, r)
+		return l.errorf("bad host syntax: %q, expected '.' following asterisk", l.input[l.start:l.pos])
 	}
 
+	l.emit(itemHost)
 	l.acceptRun(spaceCharsNoNewLine)
 	l.ignore()
 
@@ -249,7 +260,7 @@ func isSpace(r rune) bool {
 }
 
 func isHostAllowed(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_' || r == '-' || r == '*'
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '.' || r == '_' || r == '-'
 }
 
 func lexNewline(l *lexer) stateFn {
