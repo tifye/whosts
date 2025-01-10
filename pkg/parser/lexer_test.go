@@ -156,6 +156,11 @@ func Test_LexerItemTypes(t *testing.T) {
 			input:    "256.0.0.0 host",
 			expected: []itemType{itemError},
 		},
+		{
+			name:     "IP 192.168.18.180",
+			input:    "192.168.18.180 host",
+			expected: []itemType{itemIP, itemHost, itemEOF},
+		},
 	}
 
 	for _, td := range tt {
