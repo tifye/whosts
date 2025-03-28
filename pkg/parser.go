@@ -32,16 +32,20 @@ func ParseEntries(r io.Reader) (Hosts, error) {
 	entries := make([]Entry, 0)
 	buf := bufio.NewReader(r)
 	ln := -1
-	run := true
-	for run {
+	for {
 		ln += 1
 		b, err := buf.ReadBytes('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				run = false
+				break
 			} else {
 				return Hosts{}, lineParseErr(ln, fmt.Errorf("read bytes: %s", err))
 			}
+		}
+
+		b = bytes.TrimSpace(b)
+		if len(b) == 0 {
+			continue
 		}
 
 		if bytes.HasPrefix(b, []byte{'#'}) {
@@ -58,8 +62,8 @@ func ParseEntries(r io.Reader) (Hosts, error) {
 	return Hosts{entries: entries}, nil
 }
 
+// Expect b to be trimmed of all leading and trailing whitespace as defined by Unicode
 func parseEntry(b []byte) (Entry, error) {
-	b = bytes.TrimSpace(b)
 	parts := bytes.Fields(b)
 	if len(parts) < 2 {
 		return Entry{}, invalidEntryErr(b)

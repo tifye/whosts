@@ -3,10 +3,12 @@ package cmd
 import (
 	"fmt"
 	"net"
+	"os"
 
 	"golang.org/x/net/idna"
 
 	"github.com/spf13/cobra"
+	"github.com/tifye/whosts/pkg"
 )
 
 type addOptions struct {
@@ -39,7 +41,33 @@ func newAddCommand() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("add", opts.ip, opts.host)
+			hostsFile, err := cmd.Flags().GetString("hosts")
+			if err != nil {
+				return err
+			}
+
+			file, err := os.OpenFile(hostsFile, os.O_RDWR, 0755)
+			if err != nil {
+				return fmt.Errorf("open file: %s", err)
+			}
+			defer file.Close()
+
+			hosts, err := pkg.ParseEntries(file)
+			if err != nil {
+				return err
+			}
+
+			hosts.AddEntry(pkg.Entry{
+				IP:   opts.ip,
+				Host: opts.host,
+			})
+
+			if _, err = hosts.WriteTo(file); err != nil {
+				return err
+			}
+
+			fmt.Println(hosts.String())
+
 			return nil
 		},
 	}

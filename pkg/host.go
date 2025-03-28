@@ -1,6 +1,9 @@
 package pkg
 
-import "strings"
+import (
+	"io"
+	"strings"
+)
 
 type Hosts struct {
 	entries []Entry
@@ -20,4 +23,9 @@ func (h Hosts) String() string {
 		_, _ = builder.WriteString(entry.String() + "\n")
 	}
 	return builder.String()
+}
+
+func (h Hosts) WriteTo(w io.Writer) (n int64, err error) {
+	_n, err := w.Write([]byte(h.String()))
+	return int64(_n), err
 }
