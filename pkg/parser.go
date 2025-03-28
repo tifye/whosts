@@ -87,8 +87,6 @@ func parseEntry(b []byte) (Entry, error) {
 	var m net.IP
 	err := m.UnmarshalText(ip)
 	if err != nil {
-		fmt.Println(ip, "-"+string(ip)+"-")
-		fmt.Println([]byte("192.168.18.180"))
 		return Entry{}, invalidIPErr(ip)
 	}
 
