@@ -43,5 +43,6 @@ func addCommands(root *cobra.Command) {
 		newDumpCommand(),
 		newAddCommand(),
 		newOpenCommand(),
+		newRemoveCommand(),
 	)
 }
