@@ -23,12 +23,12 @@ func newListCommand() *cobra.Command {
 			}
 			defer file.Close()
 
-			entries, err := pkg.ParseEntries(file)
+			hosts, err := pkg.ParseEntries(file)
 			if err != nil {
 				return err
 			}
 
-			for _, e := range entries {
+			for _, e := range hosts.Entries() {
 				fmt.Printf("%s %s\n", e.IP.String(), e.Host)
 			}
 

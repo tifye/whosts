@@ -20,7 +20,7 @@ type Entry struct {
 	Comment string
 }
 
-func ParseEntries(r io.Reader) ([]Entry, error) {
+func ParseEntries(r io.Reader) (Hosts, error) {
 	entries := make([]Entry, 0)
 	buf := bufio.NewReader(r)
 	ln := -1
@@ -32,7 +32,7 @@ func ParseEntries(r io.Reader) ([]Entry, error) {
 			if errors.Is(err, io.EOF) {
 				run = false
 			} else {
-				return nil, lineParseErr(ln, fmt.Errorf("read bytes: %s", err))
+				return Hosts{}, lineParseErr(ln, fmt.Errorf("read bytes: %s", err))
 			}
 		}
 
@@ -42,12 +42,12 @@ func ParseEntries(r io.Reader) ([]Entry, error) {
 
 		entry, err := parseEntry(b)
 		if err != nil {
-			return nil, lineParseErr(ln, err)
+			return Hosts{}, lineParseErr(ln, err)
 		}
 		entries = append(entries, entry)
 	}
 
-	return entries, nil
+	return Hosts{entries: entries}, nil
 }
 
 func parseEntry(b []byte) (Entry, error) {
