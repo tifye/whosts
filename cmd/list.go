@@ -28,10 +28,7 @@ func newListCommand() *cobra.Command {
 				return err
 			}
 
-			for _, e := range hosts.Entries() {
-				fmt.Printf("%s %s\n", e.IP.String(), e.Host)
-			}
-
+			fmt.Println(hosts.String())
 			return nil
 		},
 	}

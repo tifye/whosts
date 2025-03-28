@@ -20,6 +20,14 @@ type Entry struct {
 	Comment string
 }
 
+func (e Entry) String() string {
+	str := fmt.Sprintf("%s %s", e.IP.String(), e.Host)
+	if e.Comment != "" {
+		str += " " + e.Comment
+	}
+	return str
+}
+
 func ParseEntries(r io.Reader) (Hosts, error) {
 	entries := make([]Entry, 0)
 	buf := bufio.NewReader(r)
