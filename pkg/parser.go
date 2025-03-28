@@ -15,8 +15,9 @@ var (
 )
 
 type Entry struct {
-	IP   net.IP
-	Host string
+	IP      net.IP
+	Host    string
+	Comment string
 }
 
 func ParseEntries(r io.Reader) ([]Entry, error) {
@@ -61,6 +62,16 @@ func parseEntry(b []byte) (Entry, error) {
 		return Entry{}, fmt.Errorf("empty host")
 	}
 
+	var commentStr string
+	if len(parts) > 2 {
+		commentParts := parts[2:]
+		comment := bytes.Join(commentParts, []byte{' '})
+		if comment[0] != '#' {
+			invalidEntryErr(b)
+		}
+		commentStr = string(comment)
+	}
+
 	var m net.IP
 	err := m.UnmarshalText(ip)
 	if err != nil {
@@ -68,8 +79,9 @@ func parseEntry(b []byte) (Entry, error) {
 	}
 
 	return Entry{
-		IP:   m,
-		Host: string(host),
+		IP:      m,
+		Host:    string(host),
+		Comment: commentStr,
 	}, nil
 }
 

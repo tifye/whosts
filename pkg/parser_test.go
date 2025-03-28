@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ParseEntry(t *testing.T) {
+func TestParseEntry(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected Entry
@@ -16,15 +16,17 @@ func Test_ParseEntry(t *testing.T) {
 		{
 			"109.94.209.70   fitgirl-repack.net      # Fake FitGirl site",
 			Entry{
-				IP:   net.IPv4(109, 94, 209, 70),
-				Host: "fitgirl-repack.net",
+				IP:      net.IPv4(109, 94, 209, 70),
+				Host:    "fitgirl-repack.net",
+				Comment: "# Fake FitGirl site",
 			},
 		},
 		{
 			"127.0.0.1       kubernetes.docker.internal      #",
 			Entry{
-				IP:   net.IPv4(127, 0, 0, 1),
-				Host: "kubernetes.docker.internal",
+				IP:      net.IPv4(127, 0, 0, 1),
+				Host:    "kubernetes.docker.internal",
+				Comment: "#",
 			},
 		},
 		{
