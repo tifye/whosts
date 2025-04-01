@@ -40,6 +40,7 @@ type filterOptions struct {
 	hosts     []string
 	comments  []string
 	noComment bool
+	matchAll  bool
 }
 
 func newFilterOptions(filters ...FilterOption) filterOptions {
@@ -51,6 +52,10 @@ func newFilterOptions(filters ...FilterOption) filterOptions {
 }
 
 func (fo filterOptions) Match(e Entry) bool {
+	if fo.matchAll {
+		return true
+	}
+
 	var ipMatch bool
 	for _, ip := range fo.ips {
 		if ip.Equal(e.IP) {
@@ -90,6 +95,12 @@ func (fo filterOptions) Match(e Entry) bool {
 
 type FilterOption func(opts *filterOptions)
 
+func WithAll() FilterOption {
+	return func(opts *filterOptions) {
+		opts.matchAll = true
+	}
+}
+
 // Filter entries matching any one of the passed host names.
 func WithHosts(hosts ...string) FilterOption {
 	return func(opts *filterOptions) {
@@ -127,15 +138,29 @@ func WithNoComment() FilterOption {
 	}
 }
 
-func (h *Hosts) Remove(filters ...FilterOption) []Entry {
+func (h *Hosts) Remove(duplicateOnly bool, filters ...FilterOption) []Entry {
 	filterOpts := newFilterOptions(filters...)
 	keptEntries := make([]Entry, 0)
 	removedEntries := make([]Entry, 0)
+	duplicatesCheck := map[string]struct{}{}
 	for _, e := range h.entries {
-		if filterOpts.Match(e) {
-			removedEntries = append(removedEntries, e)
-		} else {
+		hasMatch := filterOpts.Match(e)
+		if !hasMatch {
 			keptEntries = append(keptEntries, e)
+			continue
+		}
+
+		if !duplicateOnly {
+			removedEntries = append(removedEntries, e)
+			continue
+		}
+
+		eStr := e.String()
+		if _, ok := duplicatesCheck[eStr]; !ok {
+			duplicatesCheck[eStr] = struct{}{}
+			keptEntries = append(keptEntries, e)
+		} else {
+			removedEntries = append(removedEntries, e)
 		}
 	}
 	h.entries = keptEntries

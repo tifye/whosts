@@ -189,3 +189,128 @@ func TestFilterOptions(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveDuplicates(t *testing.T) {
+	tests := []struct {
+		input    []Entry
+		expected []Entry
+		name     string
+	}{
+		{
+			name: "happy path: no duplicates",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+				{IP: net.IPv4(8, 8, 8, 8), Host: "dns.google"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+				{IP: net.IPv4(8, 8, 8, 8), Host: "dns.google"},
+			},
+		},
+		{
+			name: "basic duplicate: exact match",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+			},
+		},
+		{
+			name: "duplicate with different comments",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "A"},
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "B"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "A"},
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "B"},
+			},
+		},
+		{
+			name: "edge case: nil IP treated as duplicate",
+			input: []Entry{
+				{IP: nil, Host: "localhost"},
+				{IP: nil, Host: "localhost"},
+			},
+			expected: []Entry{
+				{IP: nil, Host: "localhost"},
+			},
+		},
+		{
+			name: "edge case: empty host strings",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: ""},
+				{IP: net.IPv4(127, 0, 0, 1), Host: ""},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: ""},
+			},
+		},
+		{
+			name: "edge case: IPv6 and IPv4 are different",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+				{IP: net.ParseIP("::1"), Host: "localhost"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost"},
+				{IP: net.ParseIP("::1"), Host: "localhost"},
+			},
+		},
+		{
+			name: "duplicate with whitespace-only comment",
+			input: []Entry{
+				{IP: net.IPv4(10, 0, 0, 1), Host: "host", Comment: " "},
+				{IP: net.IPv4(10, 0, 0, 1), Host: "host", Comment: " "},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(10, 0, 0, 1), Host: "host", Comment: " "},
+			},
+		},
+		{
+			name: "extreme: very long host and comment, duplicate",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: strings.Repeat("a", 255), Comment: strings.Repeat("x", 1024)},
+				{IP: net.IPv4(127, 0, 0, 1), Host: strings.Repeat("a", 255), Comment: strings.Repeat("x", 1024)},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: strings.Repeat("a", 255), Comment: strings.Repeat("x", 1024)},
+			},
+		},
+		{
+			name: "unique: differing in comment newline",
+			input: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "Line1"},
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "Line1\n"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "Line1"},
+				{IP: net.IPv4(127, 0, 0, 1), Host: "localhost", Comment: "Line1\n"},
+			},
+		},
+		{
+			name: "multiple entries, mix of duplicates and unique",
+			input: []Entry{
+				{IP: net.IPv4(1, 2, 3, 4), Host: "a"},
+				{IP: net.IPv4(1, 2, 3, 4), Host: "a"},
+				{IP: net.IPv4(5, 6, 7, 8), Host: "b"},
+				{IP: net.IPv4(5, 6, 7, 8), Host: "b", Comment: "note"},
+			},
+			expected: []Entry{
+				{IP: net.IPv4(1, 2, 3, 4), Host: "a"},
+				{IP: net.IPv4(5, 6, 7, 8), Host: "b"},
+				{IP: net.IPv4(5, 6, 7, 8), Host: "b", Comment: "note"},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			hosts := NewHosts(test.input)
+			hosts.Remove(true, WithAll())
+			assert.ElementsMatch(t, test.expected, hosts.Entries())
+		})
+	}
+}
