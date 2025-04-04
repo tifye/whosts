@@ -1,5 +1,4 @@
-whosts is a small CLI tool written in Go to edit Windows hosts files. The hosts file is a simple text file that acts as a local DNS lookup local to the machine its on. 
-
+whosts is a small CLI tool written in Go to edit Windows hosts files
 ```text
 Usage
   whosts [command]
