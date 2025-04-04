@@ -19,7 +19,8 @@ type addOptions struct {
 func newAddCommand() *cobra.Command {
 	opts := addOptions{}
 	cmd := &cobra.Command{
-		Use: "add",
+		Use:   "add",
+		Short: "Add an entry",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if err := cobra.ExactArgs(2)(cmd, args); err != nil {
 				return fmt.Errorf("accepts 2 positional args: <ip> <host>")

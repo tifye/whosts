@@ -10,7 +10,8 @@ import (
 
 func newListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "list",
+		Use:   "list",
+		Short: "List all entries",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			hostsFile, err := cmd.Flags().GetString("hosts")
 			if err != nil {

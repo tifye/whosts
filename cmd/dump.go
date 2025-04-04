@@ -10,7 +10,8 @@ import (
 
 func newDumpCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "dump",
+		Use:   "dump",
+		Short: "Dumps file contents to stdout",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			hostsFile, err := cmd.Flags().GetString("hosts")
 			if err != nil {

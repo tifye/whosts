@@ -22,7 +22,7 @@ func newRemoveCommand() *cobra.Command {
 	opts := &removeOptions{}
 	cmd := &cobra.Command{
 		Use:   "remove",
-		Short: "Remove entries matching passed filters. Filters are stacked.",
+		Short: "Remove entries matching passed filters. Filters are stacked",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			hostsFile, err := cmd.Flags().GetString("hosts")
 			if err != nil {

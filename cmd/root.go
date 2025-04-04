@@ -7,6 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/tifye/whosts/pkg"
 )
 
@@ -28,6 +29,8 @@ func Execute() {
 	root := newRootCommand()
 	addCommands(root)
 
+	root.SetHelpFunc(rootHelp)
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -45,4 +48,19 @@ func addCommands(root *cobra.Command) {
 		newOpenCommand(),
 		newRemoveCommand(),
 	)
+}
+
+func rootHelp(cmd *cobra.Command, _ []string) {
+	fmt.Println("\nUsage")
+	fmt.Printf("  %s [command]\n", cmd.Use)
+
+	fmt.Println("\nAvailable Commands:")
+	for _, c := range cmd.Commands() {
+		fmt.Printf("  %-10s %s\n", c.Name(), c.Short)
+		c.Flags().VisitAll(func(f *pflag.Flag) {
+			fmt.Printf("    --%-10s\t%s\n", f.Name, f.Usage)
+		})
+	}
+
+	fmt.Printf("\nUse \"%s [command] --help\" for more information about a command.", cmd.Name())
 }
